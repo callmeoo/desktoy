@@ -1,0 +1,107 @@
+/* 主面板通用样式 */
+.page {
+  position: relative;
+  padding: 10px 34px 40px;
+  max-width: 840px;
+  margin: 0 auto;
+}
+
+.page-head {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  margin: 4px 0 20px;
+}
+.page-title {
+  font-family: var(--font-serif);
+  font-size: 26px;
+  letter-spacing: 0.12em;
+  color: var(--mo-hui);
+  margin: 0;
+}
+.page-sub {
+  color: var(--text-soft);
+  font-size: 13px;
+}
+
+.card {
+  background: var(--paper-card);
+  border: 1px solid var(--ink-line);
+  border-radius: 16px;
+  padding: 20px 22px;
+  box-shadow: var(--shadow-soft);
+}
+.card + .card {
+  margin-top: 16px;
+}
+.card-title {
+  font-family: var(--font-serif);
+  font-size: 17px;
+  letter-spacing: 0.08em;
+  color: var(--mo-hui);
+  margin: 0 0 14px;
+}
+
+.btn {
+  padding: 9px 18px;
+  border-radius: 12px;
+  background: rgba(157, 187, 169, 0.18);
+  color: var(--mo-hui);
+  font-size: 14px;
+  border: 1px solid transparent;
+  transition:
+    background 0.15s ease,
+    transform 0.1s ease;
+}
+.btn:hover {
+  background: rgba(157, 187, 169, 0.32);
+}
+.btn:active {
+  transform: translateY(1px);
+}
+.btn-jade {
+  background: var(--qing-yu-deep);
+  color: #fff;
+}
+.btn-jade:hover {
+  background: #6f9a82;
+}
+.btn-ghost {
+  background: transparent;
+  border: 1px solid var(--ink-line-strong);
+  color: var(--text-soft);
+}
+.btn-ghost:hover {
+  background: rgba(47, 47, 45, 0.04);
+}
+.btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.field {
+  width: 100%;
+  padding: 11px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--ink-line-strong);
+  background: var(--yun-bai-soft);
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+.field:focus {
+  border-color: var(--qing-yu-deep);
+}
+
+.muted {
+  color: var(--text-faint);
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}

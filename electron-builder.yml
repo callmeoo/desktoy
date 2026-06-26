@@ -1,0 +1,25 @@
+appId: com.dongxuanmen.desktoy
+productName: 小道童·云游记
+directories:
+  buildResources: build
+  output: release
+files:
+  - out/**/*
+  - package.json
+asarUnpack:
+  - resources/**
+mac:
+  category: public.app-category.lifestyle
+  target:
+    - dmg
+  # 观时需要读取前台窗口标题；首次运行系统会请求「辅助功能」权限。
+  extendInfo:
+    NSAppleEventsUsageDescription: 小道童需要读取当前前台应用与窗口标题，用于「观时」时间统计。
+    LSUIElement: false
+win:
+  target:
+    - nsis
+linux:
+  target:
+    - AppImage
+  category: Utility
