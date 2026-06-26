@@ -11,19 +11,43 @@ const eyesOpen = computed(() => ['idle', 'focus', 'worried'].includes(props.stat
 const eyesContent = computed(() => props.state === 'happy' || props.state === 'meditate')
 const handsTogether = computed(() => props.state === 'meditate')
 
-// 真实立绘：把图片(建议透明背景 PNG/GIF)放进 src/renderer/src/assets/pet/，
-// 按状态命名 idle / meditate / happy / focus / tired / worried（如 idle.png）。
-// 放了就自动替换占位 SVG；没放的状态回退到 idle 图，再没有就用 SVG。
+// 真实立绘：把图片(建议透明背景 PNG/GIF)放进 src/renderer/src/assets/pet/。
+// 文件名既可直接用状态名(idle.png…)，也可用带描述的名字(01_idle_meditate.png…)，
+// 由下面的关键词自动匹配。放了就替换占位 SVG；缺失状态回退到 idle，再没有才用 SVG。
 const petImages = import.meta.glob('../assets/pet/*.{png,gif,webp,jpg,jpeg}', {
   eager: true,
   import: 'default'
 }) as Record<string, string>
 
-const imageByState: Record<string, string> = {}
-for (const path in petImages) {
-  const name = path.split('/').pop()?.replace(/\.[^.]+$/, '') ?? ''
-  if (name) imageByState[name] = petImages[path]
+const petFiles = Object.keys(petImages).map((path) => ({
+  name: (path.split('/').pop()?.replace(/\.[^.]+$/, '') ?? '').toLowerCase(),
+  url: petImages[path]
+}))
+
+// 每个状态的匹配关键词（按优先级，文件名包含即命中）
+const STATE_KEYWORDS: Record<PetState, string[]> = {
+  idle: ['idle', 'stand', 'default'],
+  meditate: ['meditate', 'zen'],
+  happy: ['happy', 'spin', 'smile', 'joy'],
+  focus: ['focus', 'work', 'concentrate'],
+  tired: ['sleepy', 'yawn', 'tired'],
+  worried: ['comfort', 'worried', 'worry', 'sad', 'sooth']
 }
+
+function resolveImage(state: PetState): string | null {
+  const exact = petFiles.find((f) => f.name === state)
+  if (exact) return exact.url
+  for (const kw of STATE_KEYWORDS[state]) {
+    const hit = petFiles.find((f) => f.name.includes(kw))
+    if (hit) return hit.url
+  }
+  return null
+}
+
+const imageByState = {} as Record<PetState, string | null>
+;(Object.keys(STATE_KEYWORDS) as PetState[]).forEach((s) => {
+  imageByState[s] = resolveImage(s)
+})
 
 const spriteUrl = computed<string | null>(
   () => imageByState[props.state] ?? imageByState.idle ?? null
