@@ -10,10 +10,37 @@ const props = withDefaults(defineProps<{ state?: PetState; size?: number }>(), {
 const eyesOpen = computed(() => ['idle', 'focus', 'worried'].includes(props.state))
 const eyesContent = computed(() => props.state === 'happy' || props.state === 'meditate')
 const handsTogether = computed(() => props.state === 'meditate')
+
+// 真实立绘：把图片(建议透明背景 PNG/GIF)放进 src/renderer/src/assets/pet/，
+// 按状态命名 idle / meditate / happy / focus / tired / worried（如 idle.png）。
+// 放了就自动替换占位 SVG；没放的状态回退到 idle 图，再没有就用 SVG。
+const petImages = import.meta.glob('../assets/pet/*.{png,gif,webp,jpg,jpeg}', {
+  eager: true,
+  import: 'default'
+}) as Record<string, string>
+
+const imageByState: Record<string, string> = {}
+for (const path in petImages) {
+  const name = path.split('/').pop()?.replace(/\.[^.]+$/, '') ?? ''
+  if (name) imageByState[name] = petImages[path]
+}
+
+const spriteUrl = computed<string | null>(
+  () => imageByState[props.state] ?? imageByState.idle ?? null
+)
 </script>
 
 <template>
-  <svg :width="size" :height="size" viewBox="0 0 200 230" xmlns="http://www.w3.org/2000/svg">
+  <img
+    v-if="spriteUrl"
+    class="pet-art"
+    :src="spriteUrl"
+    :width="size"
+    :height="size"
+    alt="小道童"
+    draggable="false"
+  />
+  <svg v-else :width="size" :height="size" viewBox="0 0 200 230" xmlns="http://www.w3.org/2000/svg">
     <defs>
       <radialGradient id="ds-glow" cx="50%" cy="50%" r="50%">
         <stop offset="0%" stop-color="#bcd6c6" stop-opacity="0.55" />
@@ -153,3 +180,12 @@ const handsTogether = computed(() => props.state === 'meditate')
     <circle v-if="state === 'focus'" cx="146" cy="146" r="3" fill="#ffffff" opacity="0.7" />
   </svg>
 </template>
+
+<style scoped>
+.pet-art {
+  display: block;
+  object-fit: contain;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+</style>
