@@ -47,6 +47,13 @@ npm run start       # 预览构建产物
 > 在无显示器的 CI / 容器里安装时，可用 `ELECTRON_SKIP_BINARY_DOWNLOAD=1 npm install`
 > 跳过 Electron 二进制下载（此时只能做类型检查与构建，不能启动界面）。
 
+### 常见问题
+
+- **启动报 `crypto.getRandomValues is not a function`**：这是旧版本 Node 的
+  `node:crypto` 缺少 `getRandomValues` 所致。项目已通过 `crypto-polyfill.cjs`
+  （在 `dev` / `build` / `start` 脚本里以 `node --require` 预加载）自动兜底，无需手动处理。
+  若仍遇到，建议把 Node 升级到 20 / 22 LTS（用 `node -v` 查看当前版本）。
+
 ---
 
 ## macOS 权限（观时必读）

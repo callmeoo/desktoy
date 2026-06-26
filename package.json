@@ -6,9 +6,9 @@
   "author": "callmeoo",
   "license": "MIT",
   "scripts": {
-    "dev": "electron-vite dev",
-    "start": "electron-vite preview",
-    "build": "electron-vite build",
+    "dev": "node --require ./crypto-polyfill.cjs node_modules/electron-vite/bin/electron-vite.js dev",
+    "start": "node --require ./crypto-polyfill.cjs node_modules/electron-vite/bin/electron-vite.js preview",
+    "build": "node --require ./crypto-polyfill.cjs node_modules/electron-vite/bin/electron-vite.js build",
     "typecheck:node": "tsc --noEmit -p tsconfig.node.json --composite false",
     "typecheck:web": "vue-tsc --noEmit -p tsconfig.web.json --composite false",
     "typecheck": "npm run typecheck:node && npm run typecheck:web",

@@ -1,5 +1,3 @@
-// 必须保持为第一条 import：在任何 vite 代码加载前补齐全局 crypto。
-import './crypto-polyfill'
 import { resolve } from 'node:path'
 import { defineConfig, externalizeDepsPlugin } from 'electron-vite'
 import vue from '@vitejs/plugin-vue'
