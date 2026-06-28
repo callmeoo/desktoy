@@ -4,13 +4,11 @@ import type { PetState } from '@shared/types'
 import PetSprite from './components/PetSprite.vue'
 
 const state = ref<PetState>('idle')
-const menuOpen = ref(false)
-// 轻点桌宠时短暂播放的「小动作」状态；为空表示用真实状态
 const reaction = ref<PetState | null>(null)
-let reactionTimer: ReturnType<typeof setTimeout> | null = null
-
-// 实际展示的形象：小动作优先，否则用主进程推来的真实状态
 const displayState = computed<PetState>(() => reaction.value ?? state.value)
+
+const menuOpen = ref(false)
+const greeting = ref<string | null>(null)
 
 const menu = [
   { label: '观时', hint: '今日时间', route: '/observe' },
@@ -19,24 +17,35 @@ const menu = [
   { label: '清心', hint: '与我说说', route: '/heart' }
 ]
 
-let collapseTimer: ReturnType<typeof setTimeout> | null = null
-function setMenuOpen(open: boolean): void {
-  if (menuOpen.value === open) return
-  menuOpen.value = open
-  if (collapseTimer) {
-    clearTimeout(collapseTimer)
-    collapseTimer = null
-  }
-  // 菜单展开时把悬浮窗向上撑高，收起时还原——平时只占立绘大小，不挡桌面
-  if (open) {
-    window.api.pet.setExpanded(true)
-  } else {
-    // 等退场动画播完再收缩，避免菜单被窗口裁掉
-    collapseTimer = setTimeout(() => window.api.pet.setExpanded(false), 200)
-  }
+// 摸摸头 → 道门问候（轻点不直接给任务，先打招呼）
+const GREETINGS = [
+  '道友安好，今日可还顺心？',
+  '无量天尊～道友来啦。',
+  '且坐且歇，清风自来。',
+  '道友辛苦了，喝口清茶可好？',
+  '心若清静，处处皆道场。',
+  '摸摸头～今日也要好好的。',
+  '有事右键轻唤，贫道随时在。'
+]
+let greetIndex = -1
+let greetTimer: ReturnType<typeof setTimeout> | null = null
+let reactTimer: ReturnType<typeof setTimeout> | null = null
+
+function sayGreeting(text: string, hold = 3400): void {
+  greeting.value = text
+  if (greetTimer) clearTimeout(greetTimer)
+  greetTimer = setTimeout(() => (greeting.value = null), hold)
 }
 
-// ---- 左键：拖拽 / 轻点小动作 ----
+function patPet(): void {
+  greetIndex = (greetIndex + 1) % GREETINGS.length
+  sayGreeting(GREETINGS[greetIndex])
+  reaction.value = 'happy'
+  if (reactTimer) clearTimeout(reactTimer)
+  reactTimer = setTimeout(() => (reaction.value = null), 2200)
+}
+
+// 左键：拖拽 / 摸头；右键：唤出功课菜单
 const DRAG_THRESHOLD = 4
 let pressing = false
 let moved = false
@@ -44,7 +53,7 @@ let accX = 0
 let accY = 0
 
 function onPointerDown(e: PointerEvent): void {
-  if (e.button !== 0) return // 只处理左键；右键交给 contextmenu
+  if (e.button !== 0) return // 只有左键参与拖拽/摸头
   ;(e.currentTarget as HTMLElement).setPointerCapture(e.pointerId)
   pressing = true
   moved = false
@@ -64,53 +73,54 @@ function onPointerUp(e: PointerEvent): void {
   if (!pressing) return
   pressing = false
   ;(e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId)
-  // 轻点（未拖动）：开心地转一下；不再弹菜单
-  if (!moved) playReaction()
+  if (moved) return
+  if (menuOpen.value) menuOpen.value = false
+  else patPet()
 }
 
-// 轻点桌宠 → 短暂切到「开心」并做一个晃动，随后回到原状态
-function playReaction(): void {
-  if (menuOpen.value) return
-  reaction.value = 'happy'
-  if (reactionTimer) clearTimeout(reactionTimer)
-  reactionTimer = setTimeout(() => {
-    reaction.value = null
-    reactionTimer = null
-  }, 1300)
-}
-
-// ---- 右键：呼出 / 收起 国风浮层菜单 ----
 function onContextMenu(e: MouseEvent): void {
   e.preventDefault()
-  setMenuOpen(!menuOpen.value)
+  greeting.value = null
+  menuOpen.value = !menuOpen.value
 }
 
 function pick(route: string): void {
-  setMenuOpen(false)
+  menuOpen.value = false
   window.api.nav.open(route)
 }
 
 let unsub: (() => void) | null = null
 onMounted(() => {
-  unsub = window.api.on.petState((s) => {
-    state.value = s
-  })
+  unsub = window.api.on.petState((s) => (state.value = s))
+  // 首次现身：先问候，并轻轻提示交互方式
+  setTimeout(() => sayGreeting('道友，今日安好。轻点摸摸头，右键可唤功课。', 5200), 900)
 })
 onBeforeUnmount(() => {
   unsub?.()
-  if (reactionTimer) clearTimeout(reactionTimer)
-  if (collapseTimer) clearTimeout(collapseTimer)
+  if (greetTimer) clearTimeout(greetTimer)
+  if (reactTimer) clearTimeout(reactTimer)
 })
 </script>
 
 <template>
-  <div class="pet-root" @contextmenu="onContextMenu">
+  <div class="pet-root">
     <!-- 点击空白处收起菜单 -->
-    <div v-if="menuOpen" class="backdrop" @pointerdown="setMenuOpen(false)" />
+    <div
+      v-if="menuOpen"
+      class="backdrop"
+      @pointerdown="menuOpen = false"
+      @contextmenu.prevent="menuOpen = false"
+    />
 
+    <!-- 摸头问候气泡 -->
+    <transition name="bubble">
+      <div v-if="greeting" class="greeting">{{ greeting }}</div>
+    </transition>
+
+    <!-- 右键功课菜单 -->
     <transition name="menu">
       <ul v-if="menuOpen" class="menu">
-        <li v-for="(item, i) in menu" :key="item.route" :style="{ '--i': i }">
+        <li v-for="item in menu" :key="item.route">
           <button class="menu-item" @click="pick(item.route)">
             <span class="menu-label">{{ item.label }}</span>
             <span class="menu-hint">{{ item.hint }}</span>
@@ -121,14 +131,11 @@ onBeforeUnmount(() => {
 
     <div
       class="pet"
-      :class="{
-        floating: !reaction && displayState !== 'meditate',
-        reacting: !!reaction,
-        dragging: pressing
-      }"
+      :class="{ floating: displayState !== 'meditate', dragging: pressing }"
       @pointerdown="onPointerDown"
       @pointermove="onPointerMove"
       @pointerup="onPointerUp"
+      @contextmenu="onContextMenu"
     >
       <PetSprite :state="displayState" :size="190" />
     </div>
@@ -153,7 +160,7 @@ onBeforeUnmount(() => {
   bottom: 4px;
   transform: translateX(-50%);
   cursor: grab;
-  filter: drop-shadow(0 8px 14px rgba(70, 80, 70, 0.18));
+  filter: drop-shadow(0 8px 14px rgba(86, 107, 94, 0.18));
   -webkit-app-region: no-drag;
 }
 .pet.dragging {
@@ -171,58 +178,64 @@ onBeforeUnmount(() => {
     transform: translateX(-50%) translateY(-6px);
   }
 }
-/* 轻点时的小动作：开心地晃一晃 */
-.pet.reacting {
-  animation: wiggle 1.3s ease-in-out;
+
+/* 问候气泡 */
+.greeting {
+  position: absolute;
+  left: 50%;
+  bottom: 198px;
+  transform: translateX(-50%);
+  max-width: 210px;
+  padding: 9px 14px;
+  border-radius: 14px;
+  background: rgba(253, 252, 246, 0.97);
+  border: 1px solid rgba(116, 143, 124, 0.45);
+  box-shadow: 0 8px 20px rgba(86, 107, 94, 0.16);
+  font-family: var(--font-serif);
+  font-size: 14px;
+  line-height: 1.65;
+  letter-spacing: 0.03em;
+  color: var(--mo-hui);
+  text-align: center;
+  z-index: 3;
 }
-@keyframes wiggle {
-  0% {
-    transform: translateX(-50%) translateY(0) rotate(0deg);
-  }
-  18% {
-    transform: translateX(-50%) translateY(-10px) rotate(-6deg);
-  }
-  38% {
-    transform: translateX(-50%) translateY(0) rotate(5deg);
-  }
-  58% {
-    transform: translateX(-50%) translateY(-5px) rotate(-3deg);
-  }
-  78% {
-    transform: translateX(-50%) translateY(0) rotate(2deg);
-  }
-  100% {
-    transform: translateX(-50%) translateY(0) rotate(0deg);
-  }
+.greeting::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -6px;
+  width: 12px;
+  height: 12px;
+  transform: translateX(-50%) rotate(45deg);
+  background: rgba(253, 252, 246, 0.97);
+  border-right: 1px solid rgba(116, 143, 124, 0.45);
+  border-bottom: 1px solid rgba(116, 143, 124, 0.45);
+}
+.bubble-enter-active,
+.bubble-leave-active {
+  transition:
+    opacity 0.22s ease,
+    transform 0.22s ease;
+}
+.bubble-enter-from,
+.bubble-leave-to {
+  opacity: 0;
+  transform: translateX(-50%) translateY(8px);
 }
 
+/* 右键菜单 */
 .menu {
   position: absolute;
   left: 50%;
-  bottom: 206px;
+  bottom: 188px;
   transform: translateX(-50%);
   margin: 0;
   padding: 0;
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 7px;
   z-index: 2;
-}
-/* 逐条飘入，更显飘逸 */
-.menu li {
-  animation: menu-item-in 0.32s ease both;
-  animation-delay: calc(var(--i) * 0.05s);
-}
-@keyframes menu-item-in {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }
 .menu-item {
   width: 116px;
@@ -232,9 +245,9 @@ onBeforeUnmount(() => {
   gap: 8px;
   padding: 7px 13px;
   border-radius: 16px;
-  background: rgba(252, 250, 243, 0.96);
-  box-shadow: 0 6px 18px rgba(60, 70, 60, 0.16);
-  border: 1px solid rgba(157, 187, 169, 0.4);
+  background: rgba(253, 252, 246, 0.96);
+  box-shadow: 0 6px 18px rgba(86, 107, 94, 0.16);
+  border: 1px solid rgba(116, 143, 124, 0.38);
   transition:
     transform 0.12s ease,
     background 0.12s ease;

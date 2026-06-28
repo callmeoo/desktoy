@@ -1,30 +1,27 @@
 /* 国风水墨主题 — 色板与基础样式 */
 :root {
-  /* 配色方案 */
-  --yun-bai: #f4f1e8; /* 云白 */
-  --yun-bai-soft: #faf8f1;
-  --qing-yu: #9dbba9; /* 青玉 */
-  --qing-yu-deep: #7fa68f;
-  --mo-hui: #2f2f2d; /* 墨灰 */
-  --mo-hui-soft: #4a4a46;
-  --ruo-ye: #c9ca9b; /* 若叶 */
-  --dian-jin: #c8a24e; /* 点金 */
+  /* 配色方案 — 贴合水墨主视觉：暖白 + 柔松绿 + 细金 */
+  --yun-bai: #f5f2ea; /* 云白（稍暖） */
+  --yun-bai-soft: #fbf9f3;
+  --qing-yu: #a6b6a4; /* 青玉（更柔的灰绿） */
+  --qing-yu-deep: #748f7c; /* 深青玉 */
+  --qing-yu-ink: #566b5e; /* 松绿（强调/点缀） */
+  --mo-hui: #2c2c28; /* 墨 */
+  --mo-hui-soft: #4a4a44;
+  --ruo-ye: #c7c79a; /* 若叶 */
+  --dian-jin: #c5a25c; /* 点金 */
 
-  --ink-line: rgba(47, 47, 45, 0.12);
-  --ink-line-strong: rgba(47, 47, 45, 0.22);
-  --paper: #f7f4ec;
-  --paper-card: #fcfaf3;
+  --ink-line: rgba(44, 44, 40, 0.1);
+  --ink-line-strong: rgba(44, 44, 40, 0.2);
+  --paper: #f8f5ee;
+  --paper-card: #fdfcf6;
   --text: #34342f;
   --text-soft: #6f6f64;
   --text-faint: #9a9a8c;
-  --shadow-soft: 0 10px 30px rgba(60, 70, 60, 0.12);
+  --shadow-soft: 0 12px 32px rgba(86, 107, 94, 0.12);
 
-  /* 标题 / 品牌字：楷体为先——飘逸有书法笔意，又比宋体更耐看清晰；缺失时回退到宋体衬线 */
-  --font-brush: 'Kaiti SC', 'STKaiti', 'KaiTi', '楷体', 'TsangerKaiTi', 'LXGW WenKai', 'Noto Serif SC',
-    'Songti SC', 'STSong', serif;
-  /* 兼容旧引用：仍指向同一套书法字 */
-  --font-serif: var(--font-brush);
-  /* 正文 / 数据：清晰无衬线，保证小字号也能看清 */
+  --font-serif: 'Songti SC', 'STSong', 'Noto Serif SC', 'Source Han Serif SC', 'STKaiti', 'KaiTi',
+    serif;
   --font-sans: -apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC',
     system-ui, sans-serif;
 }
