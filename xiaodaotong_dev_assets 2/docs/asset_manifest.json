@@ -1,0 +1,38 @@
+{
+  "project": "小道童云游陪伴",
+  "asset_type": "desktop_pet_dev_assets",
+  "sprites": [
+    {
+      "file": "sprites_png_transparent/01_idle_meditate.png",
+      "state": "待机打坐"
+    },
+    {
+      "file": "sprites_png_transparent/02_whisk_clear_cloud.png",
+      "state": "挥拂尘清云"
+    },
+    {
+      "file": "sprites_png_transparent/03_task_checklist.png",
+      "state": "看任务清单"
+    },
+    {
+      "file": "sprites_png_transparent/04_sleepy_yawn.png",
+      "state": "困倦打哈欠"
+    },
+    {
+      "file": "sprites_png_transparent/05_happy_spin.png",
+      "state": "开心转圈"
+    },
+    {
+      "file": "sprites_png_transparent/06_comfort_user.png",
+      "state": "安慰用户"
+    },
+    {
+      "file": "sprites_png_transparent/07_focus_work.png",
+      "state": "专注陪伴工作"
+    },
+    {
+      "file": "sprites_png_transparent/08_sleep_reminder_gourd.png",
+      "state": "抱葫芦提醒休息"
+    }
+  ]
+}

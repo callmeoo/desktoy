@@ -42,7 +42,8 @@ const api: DesktoyApi = {
   pet: {
     move: (dx, dy) => ipcRenderer.send(IPC.petMove, dx, dy),
     setState: (state) => ipcRenderer.send(IPC.petSetState, state),
-    resetState: () => ipcRenderer.send(IPC.petResetState)
+    resetState: () => ipcRenderer.send(IPC.petResetState),
+    setExpanded: (expanded) => ipcRenderer.send(IPC.petSetExpanded, expanded)
   },
 
   nav: {

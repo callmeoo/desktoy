@@ -5,7 +5,7 @@ import { store } from './store'
 import { tracker } from './tracking/tracker'
 import { getHeartReply } from './heart'
 import { localDate } from './time'
-import { hidePanel, movePet, sendPetState, showPanel } from './windows'
+import { hidePanel, movePet, sendPetState, setPetExpanded, showPanel } from './windows'
 
 export function registerIpc(onQuit: () => void): void {
   // ---- invoke（有返回值）----
@@ -59,6 +59,7 @@ export function registerIpc(onQuit: () => void): void {
   ipcMain.on(IPC.petMove, (_e, dx: number, dy: number) => movePet(dx, dy))
   ipcMain.on(IPC.petSetState, (_e, state: PetState) => sendPetState(state))
   ipcMain.on(IPC.petResetState, () => sendPetState('idle'))
+  ipcMain.on(IPC.petSetExpanded, (_e, expanded: boolean) => setPetExpanded(expanded))
   ipcMain.on(IPC.navOpen, (_e, route: string) => showPanel(route))
   ipcMain.on(IPC.panelHide, () => hidePanel())
   ipcMain.on(IPC.appQuit, () => onQuit())

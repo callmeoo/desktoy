@@ -19,8 +19,12 @@
   --text-faint: #9a9a8c;
   --shadow-soft: 0 10px 30px rgba(60, 70, 60, 0.12);
 
-  --font-serif: 'STSong', 'Songti SC', 'Noto Serif SC', 'Source Han Serif SC', 'KaiTi', 'STKaiti',
-    serif;
+  /* 标题 / 品牌字：楷体为先——飘逸有书法笔意，又比宋体更耐看清晰；缺失时回退到宋体衬线 */
+  --font-brush: 'Kaiti SC', 'STKaiti', 'KaiTi', '楷体', 'TsangerKaiTi', 'LXGW WenKai', 'Noto Serif SC',
+    'Songti SC', 'STSong', serif;
+  /* 兼容旧引用：仍指向同一套书法字 */
+  --font-serif: var(--font-brush);
+  /* 正文 / 数据：清晰无衬线，保证小字号也能看清 */
   --font-sans: -apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC',
     system-ui, sans-serif;
 }

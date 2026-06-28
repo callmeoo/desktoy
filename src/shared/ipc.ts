@@ -14,6 +14,7 @@ export const IPC = {
   petMove: 'pet:move',
   petSetState: 'pet:setState',
   petResetState: 'pet:resetState',
+  petSetExpanded: 'pet:setExpanded',
   navOpen: 'nav:open',
   panelHide: 'panel:hide',
   appQuit: 'app:quit',

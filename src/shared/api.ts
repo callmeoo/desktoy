@@ -44,6 +44,8 @@ export interface DesktoyApi {
     setState(state: PetState): void
     /** 回到默认（待机）状态 */
     resetState(): void
+    /** 右键菜单展开/收起时撑高或还原悬浮窗 */
+    setExpanded(expanded: boolean): void
   }
 
   nav: {

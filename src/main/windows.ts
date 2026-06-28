@@ -5,6 +5,8 @@ import type { PetState } from '../shared/types'
 
 const PET_WIDTH = 260
 const PET_HEIGHT = 300
+/** 右键浮层菜单展开时窗口的高度——给菜单留出立绘上方的空间 */
+const PET_HEIGHT_EXPANDED = 500
 const PANEL_WIDTH = 900
 const PANEL_HEIGHT = 640
 
@@ -141,4 +143,20 @@ export function movePet(dx: number, dy: number): void {
   if (!petWin) return
   const [x, y] = petWin.getPosition()
   petWin.setPosition(Math.round(x + dx), Math.round(y + dy))
+}
+
+/**
+ * 右键菜单展开 / 收起时调整悬浮窗高度。
+ * 平时窗口只有立绘大小，避免在桌面上拦截多余点击；展开时向上撑高、底边不动，
+ * 让浮层菜单有空间显示在立绘上方。
+ */
+export function setPetExpanded(expanded: boolean): void {
+  if (!petWin) return
+  const target = expanded ? PET_HEIGHT_EXPANDED : PET_HEIGHT
+  const [, height] = petWin.getSize()
+  if (height === target) return
+  const [x, y] = petWin.getPosition()
+  const delta = target - height
+  // 底边保持不动：高度增加多少，y 就上移多少
+  petWin.setBounds({ x, y: y - delta, width: PET_WIDTH, height: target })
 }
