@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, onBeforeUnmount, ref } from 'vue'
+import { computed, onMounted, onBeforeUnmount, ref, watch } from 'vue'
 import type { PetState } from '@shared/types'
 import PetSprite from './components/PetSprite.vue'
 
@@ -88,6 +88,9 @@ function pick(route: string): void {
   menuOpen.value = false
   window.api.nav.open(route)
 }
+
+// 右键菜单展开时撑高悬浮窗（底边不动），给菜单留出立绘上方空间；收起则还原
+watch(menuOpen, (open) => window.api.pet.setExpanded(open))
 
 let unsub: (() => void) | null = null
 onMounted(() => {
