@@ -14,24 +14,24 @@ const handsTogether = computed(() => props.state === 'meditate')
 // 真实立绘：把图片(建议透明背景 PNG/GIF)放进 src/renderer/src/assets/pet/。
 // 文件名既可直接用状态名(idle.png…)，也可用带描述的名字(01_idle_meditate.png…)，
 // 由下面的关键词自动匹配。放了就替换占位 SVG；缺失状态回退到 idle，再没有才用 SVG。
-const petImages = import.meta.glob('../assets/pet/*.{png,gif,webp,jpg,jpeg}', {
-  eager: true,
-  import: 'default'
-}) as Record<string, string>
+const petImages = import.meta.glob(
+  '../assets/pet/*.{png,PNG,gif,GIF,webp,WEBP,jpg,JPG,jpeg,JPEG}',
+  { eager: true, import: 'default' }
+) as Record<string, string>
 
 const petFiles = Object.keys(petImages).map((path) => ({
   name: (path.split('/').pop()?.replace(/\.[^.]+$/, '') ?? '').toLowerCase(),
   url: petImages[path]
 }))
 
-// 每个状态的匹配关键词（按优先级，文件名包含即命中）
+// 每个状态的匹配关键词（中英文皆可，文件名包含即命中，按优先级）
 const STATE_KEYWORDS: Record<PetState, string[]> = {
-  idle: ['idle', 'stand', 'default'],
-  meditate: ['meditate', 'zen'],
-  happy: ['happy', 'spin', 'smile', 'joy'],
-  focus: ['focus', 'work', 'concentrate'],
-  tired: ['sleepy', 'yawn', 'tired'],
-  worried: ['comfort', 'worried', 'worry', 'sad', 'sooth']
+  idle: ['idle', 'stand', 'default', '待机', '打坐'],
+  meditate: ['meditate', 'zen', '入定', '打坐', '待机'],
+  happy: ['happy', 'spin', 'smile', 'joy', '开心', '转圈'],
+  focus: ['focus', 'work', 'concentrate', '专注', '陪伴', '工作'],
+  tired: ['sleepy', 'yawn', 'tired', '困倦', '哈欠'],
+  worried: ['comfort', 'worried', 'worry', 'sad', 'sooth', '安慰', '担心']
 }
 
 function resolveImage(state: PetState): string | null {
