@@ -13,10 +13,10 @@ const { qi, morning, today } = storeToRefs(store)
 
 const hour = new Date().getHours()
 const greeting = computed(() => {
-  if (hour >= 5 && hour < 11) return { hi: '早安', line: '晨光熹微，新的一天，慢慢来。' }
-  if (hour >= 11 && hour < 17) return { hi: '午安', line: '午后小憩，记得起身喝口水。' }
-  if (hour >= 17 && hour < 22) return { hi: '晚安', line: '暮色四合，今日已经辛苦了。' }
-  return { hi: '夜深了', line: '宜早些安歇，明日清气自足。' }
+  if (hour >= 5 && hour < 11) return { hi: '道友，早安', line: '晨光熹微，新的一天，慢慢来。' }
+  if (hour >= 11 && hour < 17) return { hi: '道友，午安', line: '午后小憩，记得起身喝口水。' }
+  if (hour >= 17 && hour < 22) return { hi: '道友，向晚', line: '暮色四合，今日已经辛苦了。' }
+  return { hi: '道友，夜深了', line: '宜早些安歇，明日清气自足。' }
 })
 
 const topCategory = computed(() => today.value?.categories?.[0] ?? null)

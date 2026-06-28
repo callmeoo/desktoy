@@ -1,10 +1,14 @@
 <script setup lang="ts">
-import { onMounted, onBeforeUnmount, ref } from 'vue'
+import { computed, onMounted, onBeforeUnmount, ref } from 'vue'
 import type { PetState } from '@shared/types'
 import PetSprite from './components/PetSprite.vue'
 
 const state = ref<PetState>('idle')
+const reaction = ref<PetState | null>(null)
+const displayState = computed<PetState>(() => reaction.value ?? state.value)
+
 const menuOpen = ref(false)
+const greeting = ref<string | null>(null)
 
 const menu = [
   { label: '观时', hint: '今日时间', route: '/observe' },
@@ -13,7 +17,35 @@ const menu = [
   { label: '清心', hint: '与我说说', route: '/heart' }
 ]
 
-// ---- 拖拽 / 点击区分 ----
+// 摸摸头 → 道门问候（轻点不直接给任务，先打招呼）
+const GREETINGS = [
+  '道友安好，今日可还顺心？',
+  '无量天尊～道友来啦。',
+  '且坐且歇，清风自来。',
+  '道友辛苦了，喝口清茶可好？',
+  '心若清静，处处皆道场。',
+  '摸摸头～今日也要好好的。',
+  '有事右键轻唤，贫道随时在。'
+]
+let greetIndex = -1
+let greetTimer: ReturnType<typeof setTimeout> | null = null
+let reactTimer: ReturnType<typeof setTimeout> | null = null
+
+function sayGreeting(text: string, hold = 3400): void {
+  greeting.value = text
+  if (greetTimer) clearTimeout(greetTimer)
+  greetTimer = setTimeout(() => (greeting.value = null), hold)
+}
+
+function patPet(): void {
+  greetIndex = (greetIndex + 1) % GREETINGS.length
+  sayGreeting(GREETINGS[greetIndex])
+  reaction.value = 'happy'
+  if (reactTimer) clearTimeout(reactTimer)
+  reactTimer = setTimeout(() => (reaction.value = null), 2200)
+}
+
+// 左键：拖拽 / 摸头；右键：唤出功课菜单
 const DRAG_THRESHOLD = 4
 let pressing = false
 let moved = false
@@ -21,6 +53,7 @@ let accX = 0
 let accY = 0
 
 function onPointerDown(e: PointerEvent): void {
+  if (e.button !== 0) return // 只有左键参与拖拽/摸头
   ;(e.currentTarget as HTMLElement).setPointerCapture(e.pointerId)
   pressing = true
   moved = false
@@ -40,7 +73,15 @@ function onPointerUp(e: PointerEvent): void {
   if (!pressing) return
   pressing = false
   ;(e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId)
-  if (!moved) menuOpen.value = !menuOpen.value
+  if (moved) return
+  if (menuOpen.value) menuOpen.value = false
+  else patPet()
+}
+
+function onContextMenu(e: MouseEvent): void {
+  e.preventDefault()
+  greeting.value = null
+  menuOpen.value = !menuOpen.value
 }
 
 function pick(route: string): void {
@@ -50,18 +91,33 @@ function pick(route: string): void {
 
 let unsub: (() => void) | null = null
 onMounted(() => {
-  unsub = window.api.on.petState((s) => {
-    state.value = s
-  })
+  unsub = window.api.on.petState((s) => (state.value = s))
+  // 首次现身：先问候，并轻轻提示交互方式
+  setTimeout(() => sayGreeting('道友，今日安好。轻点摸摸头，右键可唤功课。', 5200), 900)
 })
-onBeforeUnmount(() => unsub?.())
+onBeforeUnmount(() => {
+  unsub?.()
+  if (greetTimer) clearTimeout(greetTimer)
+  if (reactTimer) clearTimeout(reactTimer)
+})
 </script>
 
 <template>
   <div class="pet-root">
     <!-- 点击空白处收起菜单 -->
-    <div v-if="menuOpen" class="backdrop" @pointerdown="menuOpen = false" />
+    <div
+      v-if="menuOpen"
+      class="backdrop"
+      @pointerdown="menuOpen = false"
+      @contextmenu.prevent="menuOpen = false"
+    />
 
+    <!-- 摸头问候气泡 -->
+    <transition name="bubble">
+      <div v-if="greeting" class="greeting">{{ greeting }}</div>
+    </transition>
+
+    <!-- 右键功课菜单 -->
     <transition name="menu">
       <ul v-if="menuOpen" class="menu">
         <li v-for="item in menu" :key="item.route">
@@ -75,12 +131,13 @@ onBeforeUnmount(() => unsub?.())
 
     <div
       class="pet"
-      :class="{ floating: state !== 'meditate', dragging: pressing }"
+      :class="{ floating: displayState !== 'meditate', dragging: pressing }"
       @pointerdown="onPointerDown"
       @pointermove="onPointerMove"
       @pointerup="onPointerUp"
+      @contextmenu="onContextMenu"
     >
-      <PetSprite :state="state" :size="190" />
+      <PetSprite :state="displayState" :size="190" />
     </div>
   </div>
 </template>
@@ -103,7 +160,7 @@ onBeforeUnmount(() => unsub?.())
   bottom: 4px;
   transform: translateX(-50%);
   cursor: grab;
-  filter: drop-shadow(0 8px 14px rgba(70, 80, 70, 0.18));
+  filter: drop-shadow(0 8px 14px rgba(86, 107, 94, 0.18));
   -webkit-app-region: no-drag;
 }
 .pet.dragging {
@@ -122,6 +179,51 @@ onBeforeUnmount(() => unsub?.())
   }
 }
 
+/* 问候气泡 */
+.greeting {
+  position: absolute;
+  left: 50%;
+  bottom: 198px;
+  transform: translateX(-50%);
+  max-width: 210px;
+  padding: 9px 14px;
+  border-radius: 14px;
+  background: rgba(253, 252, 246, 0.97);
+  border: 1px solid rgba(116, 143, 124, 0.45);
+  box-shadow: 0 8px 20px rgba(86, 107, 94, 0.16);
+  font-family: var(--font-serif);
+  font-size: 14px;
+  line-height: 1.65;
+  letter-spacing: 0.03em;
+  color: var(--mo-hui);
+  text-align: center;
+  z-index: 3;
+}
+.greeting::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -6px;
+  width: 12px;
+  height: 12px;
+  transform: translateX(-50%) rotate(45deg);
+  background: rgba(253, 252, 246, 0.97);
+  border-right: 1px solid rgba(116, 143, 124, 0.45);
+  border-bottom: 1px solid rgba(116, 143, 124, 0.45);
+}
+.bubble-enter-active,
+.bubble-leave-active {
+  transition:
+    opacity 0.22s ease,
+    transform 0.22s ease;
+}
+.bubble-enter-from,
+.bubble-leave-to {
+  opacity: 0;
+  transform: translateX(-50%) translateY(8px);
+}
+
+/* 右键菜单 */
 .menu {
   position: absolute;
   left: 50%;
@@ -143,9 +245,9 @@ onBeforeUnmount(() => unsub?.())
   gap: 8px;
   padding: 7px 13px;
   border-radius: 16px;
-  background: rgba(252, 250, 243, 0.96);
-  box-shadow: 0 6px 18px rgba(60, 70, 60, 0.16);
-  border: 1px solid rgba(157, 187, 169, 0.4);
+  background: rgba(253, 252, 246, 0.96);
+  box-shadow: 0 6px 18px rgba(86, 107, 94, 0.16);
+  border: 1px solid rgba(116, 143, 124, 0.38);
   transition:
     transform 0.12s ease,
     background 0.12s ease;
